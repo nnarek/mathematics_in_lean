@@ -36,22 +36,75 @@ variable (x y z : α)
 #check (sup_le : x ≤ z → y ≤ z → x ⊔ y ≤ z)
 
 example : x ⊓ y = y ⊓ x := by
-  sorry
+  apply le_antisymm
+  repeat
+    apply le_inf
+    apply inf_le_right
+    apply inf_le_left
 
 example : x ⊓ y ⊓ z = x ⊓ (y ⊓ z) := by
-  sorry
+  apply le_antisymm
+  · apply le_inf
+    apply le_trans
+    apply inf_le_left
+    apply inf_le_left
+    apply le_inf
+    apply le_trans
+    apply inf_le_left
+    apply inf_le_right
+    apply inf_le_right
+  · apply le_inf
+    apply le_inf
+    apply inf_le_left
+    apply le_trans
+    apply inf_le_right
+    apply inf_le_left
+    apply le_trans
+    apply inf_le_right
+    apply inf_le_right
+
 
 example : x ⊔ y = y ⊔ x := by
-  sorry
+  apply le_antisymm
+  repeat
+    apply sup_le
+    apply le_sup_right
+    apply le_sup_left
+
 
 example : x ⊔ y ⊔ z = x ⊔ (y ⊔ z) := by
-  sorry
+  apply le_antisymm
+  · apply sup_le
+    apply sup_le
+    apply le_sup_left
+    apply le_trans (b := y ⊔ z)
+    apply le_sup_left
+    apply le_sup_right
+    apply le_trans (b := y ⊔ z)
+    apply le_sup_right
+    apply le_sup_right
+  · apply sup_le
+    apply le_trans (b := x ⊔ y)
+    apply le_sup_left
+    apply le_sup_left
+    apply sup_le
+    apply le_trans (b := x ⊔ y)
+    apply le_sup_right
+    apply le_sup_left
+    apply le_sup_right
+
 
 theorem absorb1 : x ⊓ (x ⊔ y) = x := by
-  sorry
+  apply le_antisymm
+  · apply inf_le_left
+  · apply le_inf le_rfl
+    apply le_sup_left
 
 theorem absorb2 : x ⊔ x ⊓ y = x := by
-  sorry
+  apply le_antisymm
+  · apply sup_le le_rfl
+    apply inf_le_left
+  · apply le_sup_left
 
 end
 
@@ -70,10 +123,10 @@ variable {α : Type*} [Lattice α]
 variable (a b c : α)
 
 example (h : ∀ x y z : α, x ⊓ (y ⊔ z) = x ⊓ y ⊔ x ⊓ z) : a ⊔ b ⊓ c = (a ⊔ b) ⊓ (a ⊔ c) := by
-  sorry
+  rw [h,inf_comm _ a,absorb1,inf_comm (a⊔b) c,h,<-sup_assoc,inf_comm c a,absorb2,inf_comm]
 
 example (h : ∀ x y z : α, x ⊔ y ⊓ z = (x ⊔ y) ⊓ (x ⊔ z)) : a ⊓ (b ⊔ c) = a ⊓ b ⊔ a ⊓ c := by
-  sorry
+  rw [h,sup_comm _ a,absorb2,sup_comm (a⊓b) c,h,<-inf_assoc,sup_comm c a,absorb1,sup_comm]
 
 end
 
@@ -87,13 +140,21 @@ variable (a b c : R)
 #check (mul_nonneg : 0 ≤ a → 0 ≤ b → 0 ≤ a * b)
 
 example (h : a ≤ b) : 0 ≤ b - a := by
-  sorry
+  have h' := sub_le_sub_right h a
+  rw [sub_eq_zero_of_eq rfl] at h'
+  exact h'
 
 example (h: 0 ≤ b - a) : a ≤ b := by
-  sorry
+  have h' := add_le_add_right h a
+  rw [zero_add,sub_add_cancel] at h'
+  exact h'
 
 example (h : a ≤ b) (h' : 0 ≤ c) : a * c ≤ b * c := by
-  sorry
+  apply sub_nonneg.mp -- same as above theorems
+  rw [<-sub_mul]
+  apply mul_nonneg
+  apply sub_nonneg_of_le h -- same as first theorm of this section
+  exact h'
 
 end
 
@@ -106,7 +167,8 @@ variable (x y z : X)
 #check (dist_triangle x y z : dist x z ≤ dist x y + dist y z)
 
 example (x y : X) : 0 ≤ dist x y := by
-  sorry
+  have h := dist_triangle x y x
+  rw [dist_self x,dist_comm y x] at h
+  linarith
 
 end
-
