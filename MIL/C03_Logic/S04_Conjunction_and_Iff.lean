@@ -64,7 +64,11 @@ example {x y : ℝ} (h : x ≤ y ∧ x ≠ y) : ¬y ≤ x :=
   fun h' ↦ h.right (le_antisymm h.left h')
 
 example {m n : ℕ} (h : m ∣ n ∧ m ≠ n) : m ∣ n ∧ ¬n ∣ m :=
-  sorry
+by
+  apply And.intro h.1
+  intro h'
+  apply h.2
+  apply dvd_antisymm h.1 h'
 
 example : ∃ x : ℝ, 2 < x ∧ x < 4 :=
   ⟨5 / 2, by norm_num, by norm_num⟩
@@ -102,14 +106,35 @@ example {x y : ℝ} (h : x ≤ y) : ¬y ≤ x ↔ x ≠ y :=
   ⟨fun h₀ h₁ ↦ h₀ (by rw [h₁]), fun h₀ h₁ ↦ h₀ (le_antisymm h h₁)⟩
 
 example {x y : ℝ} : x ≤ y ∧ ¬y ≤ x ↔ x ≤ y ∧ x ≠ y :=
-  sorry
+by
+  constructor <;> intro h
+  · constructor
+    · exact h.1
+    · intro xy
+      apply h.2
+      exact le_of_eq (Eq.symm xy)
+  · constructor
+    · exact h.1
+    · intro h'
+      apply h.2
+      apply le_antisymm h.1 h'
 
 theorem aux {x y : ℝ} (h : x ^ 2 + y ^ 2 = 0) : x = 0 :=
-  have h' : x ^ 2 = 0 := by sorry
+  have h' : x ^ 2 = 0 := by
+    apply le_antisym
+
+
   pow_eq_zero h'
 
 example (x y : ℝ) : x ^ 2 + y ^ 2 = 0 ↔ x = 0 ∧ y = 0 :=
-  sorry
+by
+  constructor <;> intro h
+  · constructor
+    apply aux h
+    rw [add_comm] at h
+    apply aux h
+  · rw [h.1,h.2]
+    norm_num
 
 section
 
@@ -130,7 +155,12 @@ theorem not_monotone_iff {f : ℝ → ℝ} : ¬Monotone f ↔ ∃ x y, x ≤ y �
   rfl
 
 example : ¬Monotone fun x : ℝ ↦ -x := by
-  sorry
+  intro h
+  unfold Monotone at h
+  dsimp at h
+  have hf := @h 0 1
+  norm_num at hf
+
 
 section
 variable {α : Type*} [PartialOrder α]
@@ -138,7 +168,15 @@ variable (a b : α)
 
 example : a < b ↔ a ≤ b ∧ a ≠ b := by
   rw [lt_iff_le_not_le]
-  sorry
+  constructor <;> intro h
+  · constructor
+    exact h.1
+    intro heq
+    apply h.2 (le_of_eq (Eq.symm heq))
+  · constructor
+    exact h.1
+    intro hneq
+    apply h.2 (le_antisymm h.1 hneq)
 
 end
 
@@ -148,10 +186,15 @@ variable (a b c : α)
 
 example : ¬a < a := by
   rw [lt_iff_le_not_le]
-  sorry
+  intro ⟨ha,hb⟩
+  apply hb ha
 
 example : a < b → b < c → a < c := by
   simp only [lt_iff_le_not_le]
-  sorry
+  intro ha hb
+  constructor
+  · apply le_trans ha.1 hb.1
+  · intro hca
+    apply ha.2 (le_trans hb.1 hca)
 
 end
