@@ -48,7 +48,15 @@ theorem dvd_fac {i n : ℕ} (ipos : 0 < i) (ile : i ≤ n) : i ∣ fac n := by
 theorem pow_two_le_fac (n : ℕ) : 2 ^ (n - 1) ≤ fac n := by
   rcases n with _ | n
   · simp [fac]
-  sorry
+  induction' n with n h
+  · simp [fac]
+  · simp at *
+    rw [pow_succ']
+    apply le_trans (b := 2 * fac (n + 1))
+    · exact Nat.mul_le_mul_left 2 h
+    · dsimp only [fac]
+      apply Nat.mul_le_mul (by simp) (by simp)
+
 section
 
 variable {α : Type*} (s : Finset ℕ) (f : ℕ → ℕ) (n : ℕ)
@@ -58,6 +66,7 @@ variable {α : Type*} (s : Finset ℕ) (f : ℕ → ℕ) (n : ℕ)
 
 open BigOperators
 open Finset
+
 
 example : s.sum f = ∑ x in s, f x :=
   rfl
@@ -99,7 +108,13 @@ theorem sum_id (n : ℕ) : ∑ i in range (n + 1), i = n * (n + 1) / 2 := by
   ring
 
 theorem sum_sqr (n : ℕ) : ∑ i in range (n + 1), i ^ 2 = n * (n + 1) * (2 * n + 1) / 6 := by
-  sorry
+  symm
+  apply Nat.div_eq_of_eq_mul_right (by simp)
+  induction' n with n h
+  · simp
+  · rw [Finset.sum_range_succ,mul_add 6,<-h]
+    linarith
+
 end
 
 inductive MyNat where
@@ -134,13 +149,32 @@ theorem add_comm (m n : MyNat) : add m n = add n m := by
   rw [add, succ_add, ih]
 
 theorem add_assoc (m n k : MyNat) : add (add m n) k = add m (add n k) := by
-  sorry
+  induction' m with m ih
+  · rw [zero_add,zero_add]
+  · rw [succ_add,succ_add,succ_add,ih]
+
 theorem mul_add (m n k : MyNat) : mul m (add n k) = add (mul m n) (mul m k) := by
-  sorry
+  induction' n with n ih
+  · rw [zero_add]
+    dsimp [mul]
+    rw [zero_add]
+  · dsimp [mul,add]
+    rw [succ_add,mul,ih,add_assoc,add_assoc,add_comm _ m]
+
 theorem zero_mul (n : MyNat) : mul zero n = zero := by
-  sorry
+  induction' n with n ih
+  · dsimp [mul]
+  · dsimp [mul]
+    rw [ih,zero_add]
+
 theorem succ_mul (m n : MyNat) : mul (succ m) n = add (mul m n) n := by
-  sorry
+  induction' n with n ih
+  · rw [mul,mul,zero_add]
+  · rw [mul,mul,ih,add_assoc,add_assoc,add,add,add,add,add_comm n]
 theorem mul_comm (m n : MyNat) : mul m n = mul n m := by
-  sorry
+  induction' m with m ih
+  · rw [zero_mul,mul]
+  · rw [mul,succ_mul,ih]
+
+
 end MyNat

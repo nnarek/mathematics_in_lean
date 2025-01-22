@@ -55,7 +55,13 @@ def permGroup {α : Type*} : Group₁ (Equiv.Perm α)
 
 structure AddGroup₁ (α : Type*) where
   (add : α → α → α)
-  -- fill in the rest
+  (zero : α)
+  (neg : α → α)
+  (add_assoc : ∀ a b c, add a (add b c) = add (add a b) c)
+  (zero_add : ∀ a, add zero a = a)
+  (add_zero : ∀ a, add a zero = a)
+  (neg_add_cancel : ∀ a, add (neg a) a = zero)
+
 @[ext]
 structure Point where
   x : ℝ
@@ -67,11 +73,18 @@ namespace Point
 def add (a b : Point) : Point :=
   ⟨a.x + b.x, a.y + b.y, a.z + b.z⟩
 
-def neg (a : Point) : Point := sorry
+def neg (a : Point) : Point := ⟨-a.x,-a.y,-a.z⟩
 
-def zero : Point := sorry
+def zero : Point := ⟨0,0,0⟩
 
-def addGroupPoint : AddGroup₁ Point := sorry
+def addGroupPoint : AddGroup₁ Point where
+  add := @add
+  zero := @zero
+  neg := @neg
+  add_assoc := by unfold add; intros; ext <;> ring
+  zero_add := by intros; simp only [add, zero, zero_add]
+  add_zero := by intros; simp only [add, zero, add_zero]
+  neg_add_cancel := by intros; simp only [add, neg, zero, neg_add_cancel]
 
 end Point
 
@@ -170,4 +183,24 @@ end
 
 class AddGroup₂ (α : Type*) where
   add : α → α → α
-  -- fill in the rest
+  zero : α
+  neg : α → α
+  add_assoc : ∀ a b c, add a (add b c) = add (add a b) c
+  zero_add : ∀ a, add zero a = a
+  add_zero : ∀ a, add a zero = a
+  neg_add_cancel : ∀ a, add (neg a) a = zero
+
+-- + notation works for AddGroup₂
+--#check ∀ {α : Type*} [AddGroup₂ α] (a b : α), a + b = b + a
+
+instance hasAddGroup₂ {α : Type*} [AddGroup₂ α] : Add α :=
+  ⟨AddGroup₂.add⟩
+
+instance hasNegAddGroup₂ {α : Type*} [AddGroup₂ α] : Neg α :=
+  ⟨AddGroup₂.neg⟩
+
+instance hasZeroAddGroup₂ {α : Type*} [AddGroup₂ α] : Zero α :=
+  ⟨AddGroup₂.zero⟩
+
+-- + notation works for AddGroup₂
+#check ∀ {α : Type*} [AddGroup₂ α] (a b : α), a + b = b + a
