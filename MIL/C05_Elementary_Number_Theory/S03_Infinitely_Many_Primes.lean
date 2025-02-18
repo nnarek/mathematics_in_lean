@@ -53,9 +53,7 @@ theorem primes_infinite : ∀ n, ∃ p > n, Nat.Prime p := by
   by_contra ple
   push_neg at ple
   have : p ∣ Nat.factorial (n + 1) := by
-    --rcases exists_prime_factor (factorial (n + 1)) with ⟨p, pp, pdvd⟩
-    sorry
-
+    exact Nat.dvd_factorial (Nat.Prime.pos pp) (Nat.le_add_right_of_le ple)
   have : p ∣ 1 := by
     exact (Nat.dvd_add_iff_right this).mpr pdvd
   show False
